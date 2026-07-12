@@ -1,0 +1,12 @@
+Langgraph
+openai
+pydantic
+pytest
+langchain
+langchain-core
+langchain-community
+langchain-openai
+streamlit
+langgraph.checkpoint.sqlite
+ddgs
+langchain_mcp_adapters
