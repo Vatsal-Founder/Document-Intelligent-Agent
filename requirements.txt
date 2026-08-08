@@ -10,3 +10,10 @@ streamlit
 langgraph.checkpoint.sqlite
 ddgs
 langchain_mcp_adapters
+langchain_text_splitters
+langchain_chroma
+pypdf
+chromadb
+pdfreader
+langchain-huggingface
+sentence_transformers

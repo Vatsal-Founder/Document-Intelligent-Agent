@@ -2,3 +2,5 @@ venv/
 .env
 .python-version
 uv.lock
+Loan_docs
+loan_data.db
