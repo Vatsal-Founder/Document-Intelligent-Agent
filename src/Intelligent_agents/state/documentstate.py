@@ -36,4 +36,5 @@ class DocumentState(TypedDict):
     loan_id: str | None
     policy_result: PolicyResult | None
     financial_result: FinancialResult | None
+    retrieval_grade: Literal["sufficient", "insufficient"] | None
 
