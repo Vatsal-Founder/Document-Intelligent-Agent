@@ -1,2 +1,2 @@
 from .policytool import retrieve_doc
-from .finacialtool import sql_db_list_tables,sql_db_query,sql_db_query_checker,monthly_payment,dti,lump_sum_recalc
+from .finacialtool import sql_db_list_tables,sql_db_query,sql_db_query_checker,early_repayment_charge,monthly_payment,dti,lump_sum_recalc

@@ -111,3 +111,11 @@ def dti(total_monthly_debt: float, gross_monthly_income: float) -> str:
         return {"error": "income must be positive"}
     return str(round((total_monthly_debt / gross_monthly_income) * 100, 2))
 
+@tool
+def early_repayment_charge(outstanding_balance: float, annual_rate: float, months: int) -> str:
+    """Calculates ERC as (months) of gross interest on the balance.
+    The number of months comes from the loan's specific early-repayment clause."""
+    if annual_rate > 1:
+        annual_rate = annual_rate / 100
+    return str(round(outstanding_balance * annual_rate / 12 * months, 2))
+

@@ -30,9 +30,8 @@ class FinancialResult(BaseModel):
 
 class GradeResult(BaseModel):
     grade: Literal["sufficient", "insufficient"] = Field(
-        description="'sufficient' if the retrieved clauses clearly and unambiguously "
-        "answer the question; 'insufficient' if they don't, or if the answer is "
-        "ambiguous or requires clauses not present."
+        description="'sufficient' if the answer clearly and unambiguously addresses "
+        "the question; 'insufficient' if uncertain, declining, or missing information."
     )
 
 class DocumentState(TypedDict):
@@ -43,4 +42,6 @@ class DocumentState(TypedDict):
     policy_result: PolicyResult | None
     financial_result: FinancialResult | None
     retrieval_grade: Literal["sufficient", "insufficient"] | None
+    grade_attempts: int
+    human_decision: str | None
 

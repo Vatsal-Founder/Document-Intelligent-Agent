@@ -1,6 +1,7 @@
 from langgraph.graph import StateGraph,START,END
 from pydantic import BaseModel
-from langchain_core.messages import  HumanMessage, SystemMessage
+from langchain_core.messages import  HumanMessage, SystemMessage, AIMessage
+from langgraph.types import interrupt,Command
 
 
 from Intelligent_agents.model import supervisor_model, policy_model, financial_model, grader_model
@@ -52,6 +53,16 @@ def route_next(state: DocumentState) -> str:
 
 
 def policy_node(state: DocumentState) -> dict:
+    messages = state["messages"]
+
+    # on retry, inject a multi-query instruction
+    if state.get("grade_attempts", 0) > 0:
+        retry_note = HumanMessage(content=
+            "The previous attempt was graded insufficient. Decompose this question "
+            "into 2-3 more specific sub-questions, search the document for each, and "
+            "synthesize a more complete answer.")
+        messages = messages + [retry_note]
+
     result = policy_agent.invoke({"messages": state["messages"]})
     agent_answer = result["messages"][-1].content
 
@@ -68,23 +79,30 @@ def policy_node(state: DocumentState) -> dict:
 #-----------------
 # Retrival Grade
 #----------------
-GRADER_SYSTEM = """You judge whether retrieved loan-agreement clauses are sufficient
-to answer the user's question. Return 'sufficient' only if the clauses clearly and
-unambiguously answer it. Return 'insufficient' if the clauses don't address the
-question, are ambiguous, or if answering would require information not present."""
+GRADER_SYSTEM = """You judge whether a policy answer sufficiently addresses the user's
+question. Return 'sufficient' only if the answer clearly and confidently answers the
+question and is grounded in a cited clause. Return 'insufficient' if the answer is
+uncertain, declines, states information is missing, or lacks a citation."""
 
 def grader_node(state: DocumentState) -> dict:
-    question = state["messages"][0].content        
-    retrieved = state["messages"][-1].content       
+    question = state["messages"][0].content
+    pr = state["policy_result"]
+    retrieved = f"Answer: {pr.answer}\nCited clause: {pr.cited_clause}"
 
     grader = grader_model.with_structured_output(GradeResult)
     result = grader.invoke([
         SystemMessage(content=GRADER_SYSTEM),
-        HumanMessage(content=f"Question: {question}\n\nRetrieved clauses/answer:\n{retrieved}"),
+        HumanMessage(content=f"Question: {question}\n\n{retrieved}"),
     ])
-    return {"retrieval_grade": result.grade}
+    attempts = state.get("grade_attempts", 0) + 1
+    return {"retrieval_grade": result.grade, "grade_attempts": attempts}
 
-
+def next_grade(state: DocumentState) -> str:
+    if state["retrieval_grade"] == "sufficient":
+        return "supervisor"
+    if state["grade_attempts"] >= 2:
+        return "hitl"              # tried twice, escalate to human
+    return "policy_agent"          # retry with multi-query
 # ---------------------
 ## FINANCIAL NODE
 #---------------------
@@ -103,3 +121,33 @@ def financial_node(state: DocumentState) -> dict:
         "messages": result["messages"],
         "financial_result": structured,
     }
+
+
+# ---------------------
+## Human in the loop Node
+#---------------------
+
+
+def hitl_node(state: DocumentState) -> dict:
+    proposed = state["policy_result"].answer
+    decision = interrupt({
+        "question": state["messages"][0].content,
+        "proposed_answer": proposed,
+        "reason": "Low confidence after 2 retrieval attempts — please review.",
+    })
+
+    if decision == "yes":
+        final = AIMessage(content=(
+            f"{proposed}\n\n"
+            "_Note: this response was flagged as low-confidence by the system and "
+            "approved after human review._"
+        ))
+    else:
+        final = AIMessage(content=(
+            "After review, this question couldn't be answered with confidence from the "
+            "available loan documents, and the proposed response was not approved. "
+            "Please rephrase your question, or contact a loan advisor for clarification "
+            "on this specific matter."
+        ))
+
+    return {"human_decision": decision, "messages": [final]}
