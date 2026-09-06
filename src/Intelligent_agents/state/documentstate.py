@@ -28,6 +28,12 @@ class FinancialResult(BaseModel):
         "(e.g. a balance or monthly payment). Null if not applicable."
     )
 
+class GradeResult(BaseModel):
+    grade: Literal["sufficient", "insufficient"] = Field(
+        description="'sufficient' if the retrieved clauses clearly and unambiguously "
+        "answer the question; 'insufficient' if they don't, or if the answer is "
+        "ambiguous or requires clauses not present."
+    )
 
 class DocumentState(TypedDict):
 

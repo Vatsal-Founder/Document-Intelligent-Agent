@@ -13,3 +13,5 @@ policy_model = ChatOpenAI(model='gpt-4o-mini')
 supervisor_model= ChatOpenAI(model="gpt-4o-mini")
 
 financial_model=ChatOpenAI(model="gpt-4o-mini")
+
+grader_model=ChatOpenAI(model="gpt-4o-mini")

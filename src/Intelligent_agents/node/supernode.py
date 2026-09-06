@@ -3,8 +3,8 @@ from pydantic import BaseModel
 from langchain_core.messages import  HumanMessage, SystemMessage
 
 
-from Intelligent_agents.model import supervisor_model, policy_model, financial_model
-from Intelligent_agents.state import DocumentState, RouteDecision, PolicyResult, FinancialResult
+from Intelligent_agents.model import supervisor_model, policy_model, financial_model, grader_model
+from Intelligent_agents.state import DocumentState, RouteDecision, PolicyResult, FinancialResult, GradeResult
 from Intelligent_agents.agents import policy_agent, Financialagent
 
 
@@ -64,6 +64,25 @@ def policy_node(state: DocumentState) -> dict:
         "messages": result["messages"],
         "policy_result": structured,  
     }
+
+#-----------------
+# Retrival Grade
+#----------------
+GRADER_SYSTEM = """You judge whether retrieved loan-agreement clauses are sufficient
+to answer the user's question. Return 'sufficient' only if the clauses clearly and
+unambiguously answer it. Return 'insufficient' if the clauses don't address the
+question, are ambiguous, or if answering would require information not present."""
+
+def grader_node(state: DocumentState) -> dict:
+    question = state["messages"][0].content        
+    retrieved = state["messages"][-1].content       
+
+    grader = grader_model.with_structured_output(GradeResult)
+    result = grader.invoke([
+        SystemMessage(content=GRADER_SYSTEM),
+        HumanMessage(content=f"Question: {question}\n\nRetrieved clauses/answer:\n{retrieved}"),
+    ])
+    return {"retrieval_grade": result.grade}
 
 
 # ---------------------

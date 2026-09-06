@@ -1,1 +1,1 @@
-from .documentstate import DocumentState, RouteDecision, PolicyResult, FinancialResult
+from .documentstate import DocumentState, RouteDecision, PolicyResult, FinancialResult, GradeResult
