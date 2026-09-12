@@ -1,1 +1,1 @@
-from .intelligentgraph import workdone
+from .intelligentgraph import build_graph

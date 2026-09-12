@@ -17,7 +17,7 @@ class RouteDecision(BaseModel):
 
 class PolicyResult(BaseModel):
     answer: str = Field(description="The answer to the policy question")
-    cited_clause: str = Field(description="The specific clause relied on, e.g. 'Clause 4.1'")
+    cited_clause: str | None = Field(default=None, description="The specific clause relied on, e.g. 'Clause 4.1'. Null if none.")
 
 
 class FinancialResult(BaseModel):

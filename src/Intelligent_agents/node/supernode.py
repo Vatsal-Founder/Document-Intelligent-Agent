@@ -4,36 +4,27 @@ from langchain_core.messages import  HumanMessage, SystemMessage, AIMessage
 from langgraph.types import interrupt,Command
 
 
-from Intelligent_agents.model import supervisor_model, policy_model, financial_model, grader_model
+from Intelligent_agents.model import supervisor_model, policy_model, financial_model, grader_model, ROUTER_SYSTEM, GRADER_SYSTEM
 from Intelligent_agents.state import DocumentState, RouteDecision, PolicyResult, FinancialResult, GradeResult
-from Intelligent_agents.agents import policy_agent, Financialagent
+from Intelligent_agents.agents import build_agents
 
 
 # ---------------------
 ## SUPERVISOR NODE
 #---------------------
 
-ROUTER_SYSTEM = """You coordinate specialist agents to answer loan queries.
 
-On each turn, decide the next step:
-- financial_agent: for account data and calculations (balances, rates, payments, overpayment impact)
-- policy_agent: for contract terms (overpayment rules, penalties, payment breaks, early repayment)
-- FINISH: when the conversation already contains enough information to fully answer the user's question
 
-For a question needing both contract terms AND account data, route to each agent in turn,
-then FINISH. Do not route to the same agent twice for the same information.
-Extract the loan ID if mentioned."""
-
-def supervisor_node(state: DocumentState) -> dict:
+async def supervisor_node(state: DocumentState) -> dict:
     decider = supervisor_model.with_structured_output(RouteDecision)
-    decision = decider.invoke([
+    decision = await decider.ainvoke([
         SystemMessage(content=ROUTER_SYSTEM),
         *state["messages"],          # sees the full conversation incl. agent outputs
     ])
 
     if decision.next_agent == "FINISH":
         # synthesize final answer from accumulated results
-        final = supervisor_model.invoke([
+        final = await supervisor_model.ainvoke([
             SystemMessage(content="Synthesize a final answer for the user from the conversation above."),
             *state["messages"],
         ])
@@ -51,46 +42,44 @@ def route_next(state: DocumentState) -> str:
 ## POLICY NODE
 #---------------------
 
+def make_policy(policy_agent):
+        
+    async def policy_node(state: DocumentState) -> dict:
+        messages = state["messages"]
 
-def policy_node(state: DocumentState) -> dict:
-    messages = state["messages"]
+        # on retry, inject a multi-query instruction
+        if state.get("grade_attempts", 0) > 0:
+            retry_note = HumanMessage(content=
+                "The previous attempt was graded insufficient. Decompose this question "
+                "into 2-3 more specific sub-questions, search the document for each, and "
+                "synthesize a more complete answer.")
+            messages = messages + [retry_note]
 
-    # on retry, inject a multi-query instruction
-    if state.get("grade_attempts", 0) > 0:
-        retry_note = HumanMessage(content=
-            "The previous attempt was graded insufficient. Decompose this question "
-            "into 2-3 more specific sub-questions, search the document for each, and "
-            "synthesize a more complete answer.")
-        messages = messages + [retry_note]
+        result = await policy_agent.ainvoke({"messages": messages}) 
+        agent_answer = result["messages"][-1].content
 
-    result = policy_agent.invoke({"messages": state["messages"]})
-    agent_answer = result["messages"][-1].content
+        structurer = policy_model.with_structured_output(PolicyResult)
+        structured = await structurer.ainvoke([
+            HumanMessage(content=f"Extract the answer and cited clause from this response:\n{agent_answer}")
+        ])
 
-    structurer = policy_model.with_structured_output(PolicyResult)
-    structured = structurer.invoke([
-        HumanMessage(content=f"Extract the answer and cited clause from this response:\n{agent_answer}")
-    ])
-
-    return {
-        "messages": result["messages"],
-        "policy_result": structured,  
-    }
+        return {
+            "messages": result["messages"],
+            "policy_result": structured,  
+        }
+    return policy_node
 
 #-----------------
 # Retrival Grade
 #----------------
-GRADER_SYSTEM = """You judge whether a policy answer sufficiently addresses the user's
-question. Return 'sufficient' only if the answer clearly and confidently answers the
-question and is grounded in a cited clause. Return 'insufficient' if the answer is
-uncertain, declines, states information is missing, or lacks a citation."""
 
-def grader_node(state: DocumentState) -> dict:
+async def grader_node(state: DocumentState) -> dict:
     question = state["messages"][0].content
     pr = state["policy_result"]
     retrieved = f"Answer: {pr.answer}\nCited clause: {pr.cited_clause}"
 
     grader = grader_model.with_structured_output(GradeResult)
-    result = grader.invoke([
+    result = await grader.ainvoke([
         SystemMessage(content=GRADER_SYSTEM),
         HumanMessage(content=f"Question: {question}\n\n{retrieved}"),
     ])
@@ -107,20 +96,21 @@ def next_grade(state: DocumentState) -> str:
 ## FINANCIAL NODE
 #---------------------
 
+def make_finacial(Financialagent):
+    async def financial_node(state: DocumentState) -> dict:
+        result = await Financialagent.ainvoke({"messages": state["messages"]})
+        agent_answer = result["messages"][-1].content
 
-def financial_node(state: DocumentState) -> dict:
-    result = Financialagent.invoke({"messages": state["messages"]})
-    agent_answer = result["messages"][-1].content
+        structurer = financial_model.with_structured_output(FinancialResult)
+        structured = await structurer.ainvoke([
+            HumanMessage(content=f"Extract the answer and the key numeric value from this response:\n{agent_answer}")
+        ])
 
-    structurer = financial_model.with_structured_output(FinancialResult)
-    structured = structurer.invoke([
-        HumanMessage(content=f"Extract the answer and the key numeric value from this response:\n{agent_answer}")
-    ])
-
-    return {
-        "messages": result["messages"],
-        "financial_result": structured,
-    }
+        return {
+            "messages": result["messages"],
+            "financial_result": structured,
+        }
+    return financial_node
 
 
 # ---------------------
@@ -128,7 +118,7 @@ def financial_node(state: DocumentState) -> dict:
 #---------------------
 
 
-def hitl_node(state: DocumentState) -> dict:
+async def hitl_node(state: DocumentState) -> dict:
     proposed = state["policy_result"].answer
     decision = interrupt({
         "question": state["messages"][0].content,

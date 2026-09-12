@@ -1,12 +1,15 @@
 README.md
 pyproject.toml
 src/Intelligent_agents/__init__.py
+src/Intelligent_agents/config.py
 src/Intelligent_agents/main.py
 src/Intelligent_agents/UI/__init__.py
 src/Intelligent_agents/agents/__init__.py
 src/Intelligent_agents/agents/sub_agents.py
 src/Intelligent_agents/graph/__init__.py
 src/Intelligent_agents/graph/intelligentgraph.py
+src/Intelligent_agents/mcp_server/__init__.py
+src/Intelligent_agents/mcp_server/server.py
 src/Intelligent_agents/model/__init__.py
 src/Intelligent_agents/model/llm.py
 src/Intelligent_agents/node/__init__.py
