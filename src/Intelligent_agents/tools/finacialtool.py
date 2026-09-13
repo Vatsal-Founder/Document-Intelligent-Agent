@@ -2,7 +2,7 @@ import sqlite3
 from langchain.tools import tool
 from langchain_groq import ChatGroq
 from Intelligent_agents.model import agentmodel
-from config import DB_PATH
+from Intelligent_agents.config import DB_PATH
 
 
 
@@ -42,7 +42,7 @@ def sql_db_query(query: str) -> str:
         return f"Error: {e}"
     finally:
         con.close()
-
+'''
 @tool
 def sql_db_query_checker(query: str) -> str:
     """Use this tool to double check if your query is correct before executing it.
@@ -67,7 +67,7 @@ SQL Query: """.format(query=query)
     response = agentmodel.invoke(trigger_prompt)
     return response.text.strip()
 
-
+'''
 #calculation tool
 @tool
 def monthly_payment(principal: float, annual_rate: float, term_months: int) -> str:

@@ -1,10 +1,18 @@
+import os
+os.environ["HF_HUB_OFFLINE"] = "1"
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
+
+import logging, sys
+logging.basicConfig(level=logging.WARNING, stream=sys.stderr)
+
 from mcp.server.fastmcp import FastMCP
 import sqlite3
-from Intelligent_agents.model import agentmodel
 from Intelligent_agents.config import DB_PATH, CHROMA_PATH
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 import asyncio
+
 
 mcp= FastMCP("Intelligent Finacial MCP")
 

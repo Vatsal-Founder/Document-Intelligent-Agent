@@ -3,14 +3,19 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from langgraph.types import Command
 from Intelligent_agents.graph import build_graph
+from Intelligent_agents.agents.sub_agents import client as mcp_client
 
 # holds the compiled graph, built at startup
 state = {"graph": None}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    state["graph"] = await build_graph()   # build once when server starts (loads MCP tools)
-    yield
+    # open the MCP session once and keep it alive for the app's lifetime —
+    # every tool call from every request reuses this one subprocess instead
+    # of spawning a new one per call
+    async with mcp_client.session("loan-tools") as mcp_session:
+        state["graph"] = await build_graph(mcp_session)   # build once when server starts (loads MCP tools)
+        yield
 
 app = FastAPI(title="Document Intelligence Agent", lifespan=lifespan)
 

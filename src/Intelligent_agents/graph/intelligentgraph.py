@@ -10,9 +10,9 @@ from Intelligent_agents.agents import build_agents
 
 checkpointer = InMemorySaver()
 
-async def build_graph():
-    # load MCP tools + build agents (async)
-    financial_agent, policy_agent = await build_agents()
+async def build_graph(mcp_session):
+    # load MCP tools + build agents (async), bound to the already-open session
+    financial_agent, policy_agent = await build_agents(mcp_session)
 
     # build the two agent-dependent nodes from the factories
     policy_node = make_policy(policy_agent)
