@@ -1,7 +1,6 @@
 venv/
 .env
 .python-version
-uv.lock
-chroma_db
-loan_data.db
 __pycache__
+.DS_Store
+*.egg-info/

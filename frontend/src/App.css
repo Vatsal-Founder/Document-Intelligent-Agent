@@ -1,0 +1,395 @@
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 48px 20px 32px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 290px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.header h1 {
+  font-size: 28px;
+  letter-spacing: -0.3px;
+}
+
+.header p {
+  margin-top: 6px;
+  font-size: 15px;
+}
+
+.section-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 10px;
+}
+
+/* --- loan cards --- */
+
+.loan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.loan-card {
+  display: block;
+  padding: 0;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  overflow: hidden;
+  transition: border-color 0.15s, transform 0.1s, box-shadow 0.15s;
+  font-family: inherit;
+  box-shadow: 0 1px 2px rgba(28, 26, 46, 0.04);
+}
+
+.loan-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(28, 26, 46, 0.1);
+}
+
+.loan-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.loan-card:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.loan-card-top {
+  height: 6px;
+}
+
+.loan-card-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+}
+
+.avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.loan-card-body {
+  min-width: 0;
+}
+
+.loan-card-name {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text-h);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.loan-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.tag {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.tag.mono {
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--accent-h);
+  background: var(--accent-bg);
+}
+
+/* --- chat --- */
+
+.chat-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  min-height: 160px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-empty {
+  color: var(--text);
+  font-size: 14px;
+  text-align: center;
+  padding: 24px 0;
+}
+
+.bubble-row {
+  display: flex;
+}
+
+.bubble-row.user {
+  justify-content: flex-end;
+}
+
+.bubble {
+  max-width: 78%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+
+.bubble.assistant {
+  background: var(--surface-2);
+  color: var(--text-h);
+  border-bottom-left-radius: 4px;
+}
+
+.bubble.user {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-bottom-right-radius: 4px;
+}
+
+.thinking {
+  font-size: 13.5px;
+  color: var(--text);
+  font-style: italic;
+}
+
+/* --- review card --- */
+
+.review-card {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.review-card .review-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--warn-text);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 6px;
+}
+
+.review-card p {
+  color: var(--text-h);
+  font-size: 14.5px;
+  margin: 0 0 12px;
+}
+
+.review-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* --- buttons --- */
+
+.btn {
+  border: none;
+  border-radius: 9px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--text-h);
+}
+
+/* --- input bar --- */
+
+.input-bar {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.input-bar textarea {
+  flex: 1;
+  padding: 12px 14px;
+  font-size: 15px;
+  font-family: inherit;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-h);
+  resize: none;
+}
+
+.input-bar textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.input-bar .btn-primary {
+  padding: 12px 20px;
+}
+
+/* --- side panel --- */
+
+.panel {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  position: sticky;
+  top: 24px;
+}
+
+.panel-empty {
+  color: var(--text);
+  font-size: 13.5px;
+  text-align: center;
+  padding: 16px 4px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.panel-avatar {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.panel-name {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.panel-sub {
+  font-size: 12px;
+  color: var(--text);
+  font-family: var(--mono);
+  margin-top: 2px;
+}
+
+.panel-details {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.panel-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.panel-row-label {
+  color: var(--text);
+}
+
+.panel-row-value {
+  color: var(--text-h);
+  font-weight: 600;
+}
+
+.panel-suggestions-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.suggestion-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--surface-2);
+  border: none;
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text-h);
+  margin-bottom: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s;
+}
+
+.suggestion-btn:hover:not(:disabled) {
+  background: var(--accent-bg);
+  color: var(--accent-h);
+}
+
+.suggestion-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

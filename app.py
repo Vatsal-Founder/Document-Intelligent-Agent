@@ -1,9 +1,17 @@
+import os
+import sqlite3
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from langgraph.types import Command
 from Intelligent_agents.graph import build_graph
 from Intelligent_agents.agents.sub_agents import client as mcp_client
+from Intelligent_agents.config import DB_PATH
+
+from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 # holds the compiled graph, built at startup
 state = {"graph": None}
@@ -19,6 +27,22 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Document Intelligence Agent", lifespan=lifespan)
 
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# set ALLOWED_ORIGINS on the deployed backend to the deployed frontend's
+# origin (comma-separated for more than one); defaults to the local Vite
+# dev server so nothing needs to change for local development
+ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000").split(",")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 class Query(BaseModel):
     question: str
     thread_id: str
@@ -28,7 +52,8 @@ class Resume(BaseModel):
     decision: str
 
 @app.post("/query")
-async def ask(query: Query):
+@limiter.limit("10/hour")
+async def ask(request: Request, query: Query):
     workdone = state["graph"]
     config = {"configurable": {"thread_id": query.thread_id}}
     try:
@@ -51,7 +76,8 @@ async def ask(query: Query):
     return {"status": "complete", "answer": result["messages"][-1].content}
 
 @app.post("/resume")
-async def resume(body: Resume):
+@limiter.limit("10/hour")
+async def resume(request: Request, body: Resume):
     workdone = state["graph"]
     config = {"configurable": {"thread_id": body.thread_id}}
     try:
@@ -63,3 +89,28 @@ async def resume(body: Resume):
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+@app.get("/loans")
+async def list_loans():
+    con = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True)
+    try:
+        cursor = con.cursor()
+        cursor.execute("""
+            SELECT l.loan_id, c.name, l.product_type, l.term_months, c.employment_type, l.start_date
+            FROM loans l JOIN customers c ON l.customer_id = c.customer_id
+            ORDER BY l.loan_id
+        """)
+        rows = cursor.fetchall()
+    finally:
+        con.close()
+    return [
+        {
+            "loan_id": r[0],
+            "customer_name": r[1],
+            "product_type": r[2],
+            "term_years": r[3] // 12,
+            "employment_type": r[4],
+            "start_date": r[5],
+        }
+        for r in rows
+    ]
