@@ -25,11 +25,6 @@ COPY Loan_docs ./Loan_docs
 # install dependencies into the image
 RUN uv sync --frozen --no-dev
 
-
-# bake the embedding model into the image so it doesn't download at runtime
-# (matches your HF_HUB_OFFLINE approach — model must be present)
-RUN uv run python -c "from langchain_huggingface import HuggingFaceEmbeddings; HuggingFaceEmbeddings(model_name='all-MiniLM-L6-v2')"
-
 EXPOSE 8000
 
 CMD ["uv", "run", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

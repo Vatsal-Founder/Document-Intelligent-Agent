@@ -1,6 +1,6 @@
 from langchain_community.document_loaders import PyPDFLoader
 from pypdf import PdfReader
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import glob
@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent  # up from notebook/ to the repo root
 
 
 CHROMA_PATH = PROJECT_ROOT / "chroma_db"
@@ -17,7 +17,7 @@ DOCS_PATH = PROJECT_ROOT / "Loan_docs"
 
 from langchain_chroma import Chroma
 
-embeddings=HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 
 pdf_dir = DOCS_PATH
 
@@ -48,9 +48,9 @@ for file in pdf_files:
 
     all_chunks.extend(text_splitter)
 
-vectorstore = Chroma.from_documents(documents=all_chunks, 
+vectorstore = Chroma.from_documents(documents=all_chunks,
                         embedding=embeddings,
-                        persist_directory=CHROMA_PATH,
+                        persist_directory=str(CHROMA_PATH),
                         )
 
 

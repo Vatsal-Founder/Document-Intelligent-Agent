@@ -1,15 +1,13 @@
-import os
-os.environ["HF_HUB_OFFLINE"] = "1"
-os.environ["TRANSFORMERS_OFFLINE"] = "1"
-os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
-
 import logging, sys
 logging.basicConfig(level=logging.WARNING, stream=sys.stderr)
+
+from dotenv import load_dotenv
+load_dotenv()
 
 from mcp.server.fastmcp import FastMCP
 import sqlite3
 from Intelligent_agents.config import DB_PATH, CHROMA_PATH
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
 import asyncio
 
@@ -106,7 +104,7 @@ async def early_repayment_charge(outstanding_balance: float, annual_rate: float,
     return str(round(outstanding_balance * annual_rate / 12 * months, 2))
 
 
-embeddings=HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 vectorstore = Chroma(
     persist_directory= f"{CHROMA_PATH}",
     embedding_function=embeddings,
