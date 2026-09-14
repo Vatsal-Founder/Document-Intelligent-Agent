@@ -3,6 +3,7 @@ from Intelligent_agents.model import finacial_prompte, policy_prompt
 from langchain.agents import create_agent
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_mcp_adapters.tools import load_mcp_tools
+import os
 import sys
 from mcp import ClientSession
 from pathlib import Path
@@ -12,8 +13,9 @@ SERVER_PATH = str(Path(__file__).resolve().parent.parent / "mcp_server" / "serve
 client = MultiServerMCPClient({
     "loan-tools": {
         "command": sys.executable,
-        "args": [SERVER_PATH],         
+        "args": [SERVER_PATH],
         "transport": "stdio",
+        "env": dict(os.environ),
     }
 })
 
