@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import "./App.css";
 
-const API = "http://localhost:8000";
+const API = "https://document-intelligent-agent-1.onrender.com";
 
 const AVATAR_COLORS = ["#6c5ce7", "#e67e22", "#16a085", "#e84393", "#0984e3", "#d35400"];
 
