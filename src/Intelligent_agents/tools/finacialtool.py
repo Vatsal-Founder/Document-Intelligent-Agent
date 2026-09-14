@@ -1,6 +1,6 @@
 import sqlite3
 from langchain.tools import tool
-from langchain_groq import ChatGroq
+
 from Intelligent_agents.model import agentmodel
 from Intelligent_agents.config import DB_PATH
 
