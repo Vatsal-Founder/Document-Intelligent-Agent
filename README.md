@@ -1,10 +1,10 @@
 # Document Intelligence Agent
 
 A multi-agent assistant for a loan servicing scenario. It answers two different
-kinds of questions about a customer's mortgage — account figures pulled from a
+kinds of questions about a customer's mortgage  account figures pulled from a
 database ("what's my balance", "what would my payment be if I overpaid €5,000")
 and contract terms pulled from the customer's actual loan agreement ("can I
-take a payment break", "is there a penalty for early repayment") — and routes
+take a payment break", "is there a penalty for early repayment")  and routes
 each to a specialist agent rather than handling both with one generic prompt.
 
 The dataset is synthetic: five fictional customers and mortgages, with PDF
